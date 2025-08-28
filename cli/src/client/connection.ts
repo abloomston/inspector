@@ -39,9 +39,13 @@ export async function disconnect(transport: Transport): Promise<void> {
 export async function setLoggingLevel(
   client: Client,
   level: LogLevel,
+  timeout?: number,
 ): Promise<McpResponse> {
   try {
-    const response = await client.setLoggingLevel(level as any);
+    const response = await client.setLoggingLevel(
+      level as any,
+      timeout ? { timeout } : undefined,
+    );
     return response;
   } catch (error) {
     throw new Error(
