@@ -30,6 +30,7 @@ type Args = {
   toolName?: string;
   toolArg?: Record<string, string>;
   transport?: "sse" | "stdio" | "http";
+  timeout?: number;
 };
 
 function createTransportOptions(
@@ -99,7 +100,7 @@ async function callMethod(args: Args): Promise<void> {
 
     // Tools methods
     if (args.method === "tools/list") {
-      result = await listTools(client);
+      result = await listTools(client, args.timeout);
     } else if (args.method === "tools/call") {
       if (!args.toolName) {
         throw new Error(
@@ -107,11 +108,16 @@ async function callMethod(args: Args): Promise<void> {
         );
       }
 
-      result = await callTool(client, args.toolName, args.toolArg || {});
+      result = await callTool(
+        client,
+        args.toolName,
+        args.toolArg || {},
+        args.timeout,
+      );
     }
     // Resources methods
     else if (args.method === "resources/list") {
-      result = await listResources(client);
+      result = await listResources(client, args.timeout);
     } else if (args.method === "resources/read") {
       if (!args.uri) {
         throw new Error(
@@ -119,13 +125,13 @@ async function callMethod(args: Args): Promise<void> {
         );
       }
 
-      result = await readResource(client, args.uri);
+      result = await readResource(client, args.uri, args.timeout);
     } else if (args.method === "resources/templates/list") {
-      result = await listResourceTemplates(client);
+      result = await listResourceTemplates(client, args.timeout);
     }
     // Prompts methods
     else if (args.method === "prompts/list") {
-      result = await listPrompts(client);
+      result = await listPrompts(client, args.timeout);
     } else if (args.method === "prompts/get") {
       if (!args.promptName) {
         throw new Error(
@@ -133,7 +139,12 @@ async function callMethod(args: Args): Promise<void> {
         );
       }
 
-      result = await getPrompt(client, args.promptName, args.promptArgs || {});
+      result = await getPrompt(
+        client,
+        args.promptName,
+        args.promptArgs || {},
+        args.timeout,
+      );
     }
     // Logging methods
     else if (args.method === "logging/setLevel") {
@@ -143,7 +154,7 @@ async function callMethod(args: Args): Promise<void> {
         );
       }
 
-      result = await setLoggingLevel(client, args.logLevel);
+      result = await setLoggingLevel(client, args.logLevel, args.timeout);
     } else {
       throw new Error(
         `Unsupported method: ${args.method}. Supported methods include: tools/list, tools/call, resources/list, resources/read, resources/templates/list, prompts/list, prompts/get, logging/setLevel`,
@@ -255,6 +266,22 @@ function parseArgs(): Args {
           );
         }
         return value as "sse" | "http" | "stdio";
+      },
+    )
+    //
+    // Timeout options
+    //
+    .option(
+      "--timeout <ms>",
+      "Request timeout in milliseconds (default: 60000)",
+      (value: string) => {
+        const timeout = parseInt(value, 10);
+        if (isNaN(timeout) || timeout <= 0) {
+          throw new Error(
+            `Invalid timeout value: ${value}. Must be a positive integer.`,
+          );
+        }
+        return timeout;
       },
     );
 
