@@ -5,10 +5,10 @@
   "license": "MIT",
   "author": "Nicolas Barraud",
   "homepage": "https://github.com/nbarraud",
-  "main": "build/index.js",
+  "main": "build/cli.js",
   "type": "module",
   "bin": {
-    "mcp-inspector-cli": "build/index.js"
+    "mcp-inspector-cli": "build/cli.js"
   },
   "files": [
     "build"
